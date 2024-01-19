@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 const Login = () => {
-    const [username, setUsername] = useState("")
+    const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
 
     return (
@@ -14,11 +14,12 @@ const Login = () => {
                 <h1 className='text-4xl font-semibold mb-12'>Chatty Twitty</h1>
                 <div className="mb-2">
                     <input
-                        type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         className="block w-full rounded-md p-2 mb-4 border focus:outline-none"
-                        placeholder='Username'
+                        placeholder='Email'
+                        required
                     />
                     <input
                         type="password"
@@ -26,6 +27,7 @@ const Login = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         className="block w-full rounded-md p-2 border focus:outline-none"
                         placeholder='Password'
+                        required
                     />
                     <p className="mt-4 text-red-700 font-semibold hidden">This is an error!</p>
                 </div>
