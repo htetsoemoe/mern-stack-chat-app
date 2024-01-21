@@ -1,6 +1,7 @@
 const User = require('../models/User')
 const bcryptjs = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const { errorHandler } = require('../utils/errorHandler')
 
 // @desc Sign Up middleware
 // @route POST /signup
@@ -36,6 +37,35 @@ const signUp = async (req, res, next) => {
     }
 }
 
+// @desc Sign In middleware
+// @route POST /sign-in
+// @access Public
+const signIn = async (req, res, next) => {
+    const { email, password } = req.body
+
+    try {
+        const validUser = await User.findOne({ email })
+        if (!validUser) return next(errorHandler(404, 'User Not Found')) // this next middleware called and passed 'error' to default error handler middleware of server.js
+
+        const validPassword = bcryptjs.compareSync(password, validUser.password)
+        if (!validPassword) return next(errorHandler(401, 'Wrong Password')) // this next middleware called and passed 'error' to default error handler middleware of server.js
+
+        // Generate JWT token
+        const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRETE)
+
+        // Remove validUser's password
+        const { password: pass, ...rest } = validUser._doc
+
+        res.cookie('access_token', token, {httpOnly: true})
+            .status(200)
+            .json(rest)
+        
+    } catch (error) {
+        next(error)
+    }
+}
+
 module.exports = {
     signUp,
+    signIn,
 }
