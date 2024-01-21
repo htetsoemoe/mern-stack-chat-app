@@ -49,13 +49,13 @@ const Signup = () => {
 
     return (
         <div className='bg-blue-50 h-screen md:flex gap-8 justify-center items-center'>
-            <div className="w-[650px]">
+            <div className="w-[660px]">
                 <img src="chatting.jpg" alt="login-photo" className='rounded-md' />
             </div>
             <form
                 onSubmit={handleSubmit}
                 className="w-4/12 flex flex-col gap-5">
-                <h1 className='text-4xl font-semibold mb-12'>Chatty Twitty</h1>
+                <h1 className='text-4xl font-semibold mt-5 mb-12'>Chatty Twitty</h1>
                 <div className="mb-2">
                     <input
                         type="text"
