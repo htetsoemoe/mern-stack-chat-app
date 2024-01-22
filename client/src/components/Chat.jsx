@@ -1,6 +1,10 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 
 const Chat = () => {
+  useEffect(() => {
+    new WebSocket('ws://localhost:3500') // Provides the API for creating and managing a WebSocket connection to a server, as well as for sending and receiving data on the connection.
+  }, [])
+
   return (
     <div className='flex h-screen'>
       {/* Left Sections */}

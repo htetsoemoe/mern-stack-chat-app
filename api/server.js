@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const express = require('express')
 const connectDB = require('./config/dbConn')
 const app = express()
+const ws = require('ws')
 
 const PORT = process.env.PORT || 3500
 console.log(process.env.NODE_ENV)
@@ -26,9 +27,16 @@ app.use((err, req, res, next) => {
 
 mongoose.connection.once('open', () => {
     console.log("Connected to MongoDB Atlas")
-    app.listen(PORT, () => console.log(`Server running on port: ${PORT}`))
 })
 
 mongoose.connection.on('error', err => {
     console.log(err)
+})
+
+let server = app.listen(PORT, () => console.log(`Server running on port: ${PORT}`))
+
+// Create Web Socket Server
+const webSocketServer = new ws.WebSocketServer({ server })
+webSocketServer.on('connection', (connection) => {
+    console.log('Connected to Web Socket Server...')
 })
