@@ -39,4 +39,5 @@ let server = app.listen(PORT, () => console.log(`Server running on port: ${PORT}
 const webSocketServer = new ws.WebSocketServer({ server })
 webSocketServer.on('connection', (connection) => {
     console.log('Connected to Web Socket Server...')
+    connection.send("Hello from client to web socket server!")
 })

@@ -1,9 +1,18 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 
 const Chat = () => {
+  const [webSocket, setWebSocket] = useState(null)
+
   useEffect(() => {
-    new WebSocket('ws://localhost:3500') // Provides the API for creating and managing a WebSocket connection to a server, as well as for sending and receiving data on the connection.
+    const ws = new WebSocket('ws://localhost:3500') // Provides the API for creating and managing a WebSocket connection to a server, as well as for sending and receiving data on the connection.
+    setWebSocket(ws) // Set web-socket server to state
+
+    ws.addEventListener('message', handleMessage)
   }, [])
+
+  const handleMessage = (event) => {
+    console.log("New Message", event)
+  }
 
   return (
     <div className='flex h-screen'>
