@@ -56,7 +56,7 @@ const signIn = async (req, res, next) => {
         // Remove validUser's password
         const { password: pass, ...rest } = validUser._doc
 
-        res.cookie('access_token', token, { httpOnly: true })
+        res.cookie('token', token)   // cookie('access_token', token, { httpOnly: true })
             .status(200)
             .json(rest)
 
