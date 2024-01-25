@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react'
+import { useDispatch } from 'react-redux'
+import {
+  signOutStart, signOutSuccess, signOutFailure
+} from '../redux/user/userSlice'
 
 const Chat = () => {
   const [webSocket, setWebSocket] = useState(null)
+  const dispatch = useDispatch()
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:3500') // Provides the API for creating and managing a WebSocket connection to a server, as well as for sending and receiving data on the connection.
@@ -14,11 +19,36 @@ const Chat = () => {
     console.log("New Message", event)
   }
 
+  // SignOut Handler
+  const signOutHandler = async () => {
+    try {
+      dispatch(signOutStart())
+      const res = await fetch('/chatty/v1/auth/sign-out') // clear jwt token in cookie from backend
+      const data = await res.json()
+
+      if (data.success === false) {
+        dispatch(signOutFailure(data.message))
+        return
+      }
+
+      dispatch(signOutSuccess())  // when signOut is success set null to currentUser in redux store
+
+    } catch (error) {
+      dispatch(signOutFailure(error.message))
+    }
+  }
+
   return (
     <div className='flex h-screen'>
       {/* Left Sections */}
-      <div className="bg-white w-1/4">
-        <h1 className="text-2xl p-5 font-semibold">Contacts</h1>
+      <div className="flex flex-col bg-white w-1/4">
+        <h1 className="flex-grow text-2xl p-5 font-semibold">Contacts</h1>
+
+        <div className="mb-5 pl-5">
+          <span
+            onClick={signOutHandler}
+            className="text-red-700 text-xl cursor-pointer">Sign Out</span>
+        </div>
       </div>
 
       {/* Right Section */}

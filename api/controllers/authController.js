@@ -51,7 +51,7 @@ const signIn = async (req, res, next) => {
         if (!validPassword) return next(errorHandler(401, 'Wrong Password')) // this next middleware called and passed 'error' to default error handler middleware of server.js
 
         // Generate JWT token
-        const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRETE)
+        const token = jwt.sign({ id: validUser._id, username: validUser.username }, process.env.JWT_SECRETE)
 
         // Remove validUser's password
         const { password: pass, ...rest } = validUser._doc
@@ -70,7 +70,7 @@ const signIn = async (req, res, next) => {
 // @access Public
 const signout = async (req, res, next) => {
     try {
-        res.clearCookie('access_token')
+        res.cookie('token', '')
         res.status(200).json('User has been logout.')
     } catch (error) {
         next(error)
