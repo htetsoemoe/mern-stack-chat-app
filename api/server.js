@@ -4,7 +4,9 @@ const express = require('express')
 const connectDB = require('./config/dbConn')
 const app = express()
 const ws = require('ws')
+const jwt = require('jsonwebtoken')
 
+const jwtSecret = process.env.JWT_SECRETE
 const PORT = process.env.PORT || 3500
 console.log(process.env.NODE_ENV)
 connectDB()
@@ -40,5 +42,33 @@ const webSocketServer = new ws.WebSocketServer({ server })
 webSocketServer.on('connection', (connection, req) => {
     console.log('Connected to Web Socket Server...')
     // connection.send("Hello from client to web socket server!")
-    console.log(req.headers.cookie)
+
+    // Get cookie of a specified connection and decode userId and username from cookie
+    const cookie = req.headers.cookie
+    if (cookie) {
+        const tokenCookieString = cookie.split(';').find(str => str.startsWith('token'))
+        if (tokenCookieString) {
+            const token = tokenCookieString.split('=')[1]
+            if (token) {
+                jwt.verify(token, jwtSecret, {}, (err, userData) => {
+                    if (err) throw err
+                    const { userId, username } = userData
+                    // set userId and username to a specified connection
+                    connection.userId = userId
+                    connection.username = username
+                })
+            }
+        }
+    }
+
+    // all clients of web socket server
+    //console.log([...webSocketServer.clients].map(client => client.username))
+    [...webSocketServer.clients].forEach(client => {
+        client.send(JSON.stringify({
+            online: [...webSocketServer.clients].map(c => ({
+                userId: c.userId,
+                username: c.username
+            }))
+        }))
+    })
 })

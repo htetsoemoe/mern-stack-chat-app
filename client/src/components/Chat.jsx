@@ -16,7 +16,8 @@ const Chat = () => {
   }, [])
 
   const handleMessage = (event) => {
-    console.log("New Message", event)
+    const messageData = JSON.parse(event.data)
+    console.log(messageData)
   }
 
   // SignOut Handler
