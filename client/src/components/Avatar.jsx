@@ -15,7 +15,7 @@ const Avatar = ({ userId, username }) => {
     const color = colors[colorIndex]
 
     return (
-        <div className={`w-8 h-8 ${color} rounded-full`}>
+        <div className={`w-8 h-8 ${color} rounded-full border border-slate-700`}>
             <div className="pt-1 text-center w-full opacity-80">
                 {username[0]}
             </div>
