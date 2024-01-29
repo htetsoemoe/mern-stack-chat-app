@@ -61,6 +61,17 @@ webSocketServer.on('connection', (connection, req) => {
         }
     }
 
+    // if web socket server is receiving the message from client
+    connection.on('message', (message) => {
+        const messageData = JSON.parse(message.toString())
+        const { recipient, text } = messageData
+        if (recipient && text) {
+            [...webSocketServer.clients]
+                .filter(c => c.userId === recipient)
+                .forEach(c => c.send(JSON.stringify({text})))
+        }
+    });
+
     // all clients of web socket server
     //console.log([...webSocketServer.clients].map(client => client.username))
     [...webSocketServer.clients].forEach(client => {
