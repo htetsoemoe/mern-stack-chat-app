@@ -68,7 +68,10 @@ webSocketServer.on('connection', (connection, req) => {
         if (recipient && text) {
             [...webSocketServer.clients]
                 .filter(c => c.userId === recipient)
-                .forEach(c => c.send(JSON.stringify({text})))
+                .forEach(c => c.send(JSON.stringify({
+                    text,
+                    sender: connection.userId,
+                })))
         }
     });
 
