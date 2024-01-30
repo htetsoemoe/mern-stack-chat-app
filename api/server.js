@@ -5,6 +5,7 @@ const connectDB = require('./config/dbConn')
 const app = express()
 const ws = require('ws')
 const jwt = require('jsonwebtoken')
+const Message = require('./models/Message')
 
 const jwtSecret = process.env.JWT_SECRETE
 const PORT = process.env.PORT || 3500
@@ -62,15 +63,24 @@ webSocketServer.on('connection', (connection, req) => {
     }
 
     // if web socket server is receiving the message from client
-    connection.on('message', (message) => {
+    connection.on('message', async (message) => {
         const messageData = JSON.parse(message.toString())
         const { recipient, text } = messageData
         if (recipient && text) {
+            // Save Message to MongoDB
+            const messageDoc = await Message.create({
+                sender: connection.userId,
+                recipient,
+                text
+            });
+
             [...webSocketServer.clients]
                 .filter(c => c.userId === recipient)
                 .forEach(c => c.send(JSON.stringify({
                     text,
                     sender: connection.userId,
+                    recipient,
+                    id: messageDoc._id
                 })))
         }
     });

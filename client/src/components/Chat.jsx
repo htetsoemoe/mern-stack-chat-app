@@ -5,6 +5,7 @@ import {
 } from '../redux/user/userSlice'
 import Avatar from './Avatar'
 import Logo from './Logo'
+import { uniqBy, uniqueId } from 'lodash'
 
 const Chat = () => {
   const [webSocket, setWebSocket] = useState(null)
@@ -16,6 +17,7 @@ const Chat = () => {
   // console.log(userId, username)
   const [newMessageText, setNewMessageText] = useState("")
   const [messages, setMessages] = useState([])
+  console.log(messages)
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:3500') // Provides the API for creating and managing a WebSocket connection to a server, as well as for sending and receiving data on the connection.
@@ -40,11 +42,35 @@ const Chat = () => {
     //console.log(messageData)
     if ('online' in messageData) {
       showOnlinePeople(messageData.online) // messageData.online is an Array type
-    } else {
-      // console.log(messageData)
-      setMessages(prev => ([...prev, { isOur: false, text: messageData.text }]))
+    } else if ('text' in messageData) {
+      console.log(messageData)
+      setMessages(prev => ([...prev, { ...messageData }]))
     }
   }
+
+  // Send Message to web socket server
+  const sendMessage = (event) => {
+    event.preventDefault()
+    console.log("Message Sending...")
+    webSocket.send(JSON.stringify({
+      recipient: selectedUserId,
+      text: newMessageText,
+    }))
+    setNewMessageText('')
+    setMessages(prev => ([...prev, {
+      text: newMessageText,
+      sender: userId,
+      recipient: selectedUserId,
+    }]))
+  }
+
+  // remove duplicate message id with lodash's uniqueBy
+  // const messagesWithoutDuplicates = uniqueId(messages, '_id')
+
+  // Exclude Current Login User from Chat UI
+  const excludeCurrentUserFromOnlinePeople = { ...onlinePeople }
+  // console.log(excludeCurrentUserFromOnlinePeople)
+  delete excludeCurrentUserFromOnlinePeople[userId]
 
   // SignOut Handler
   const signOutHandler = async () => {
@@ -63,23 +89,6 @@ const Chat = () => {
     } catch (error) {
       dispatch(signOutFailure(error.message))
     }
-  }
-
-  // Exclude Current Login User from Chat UI
-  const excludeCurrentUserFromOnlinePeople = { ...onlinePeople }
-  // console.log(excludeCurrentUserFromOnlinePeople)
-  delete excludeCurrentUserFromOnlinePeople[userId]
-
-  // Send Message to web socket server
-  const sendMessage = (event) => {
-    event.preventDefault()
-    console.log("Message Sending...")
-    webSocket.send(JSON.stringify({
-      recipient: selectedUserId,
-      text: newMessageText,
-    }))
-    setNewMessageText('')
-    setMessages(prev => ([...prev, { text: newMessageText, isOur: true }]))
   }
 
   return (
@@ -126,12 +135,20 @@ const Chat = () => {
           )}
           {/* !!selectedUserId = !!undefined = false meaning is 'selectedUserId' is existing */}
           {!!selectedUserId && (
-            <div className="">
-              {messages.map((message, index) => (
-                <div key={index}>
-                  {message.text}
-                </div>
-              ))}
+            <div className="relative h-full">
+              <div className="overflow-y-scroll absolute top-0 left-0 right-0 bottom-2">
+                {messages.map((message, index) => (
+                  <div key={index}
+                    className={(message.sender === userId ? 'text-right' : 'text-left')}
+                  >
+                    <div className={`text-left inline-block p-2 my-2 rounded-md text-sm ${message.sender === userId ? 'bg-blue-500 text-white' : 'bg-white text-gray-500'}`}>
+                      {message.text}
+                    </div>
+                    {/* SenderID: {message.sender} <br />
+                  MyID: {userId} <br /> */}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
