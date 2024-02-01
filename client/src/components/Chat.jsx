@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   signOutStart, signOutSuccess, signOutFailure
@@ -17,7 +17,8 @@ const Chat = () => {
   // console.log(userId, username)
   const [newMessageText, setNewMessageText] = useState("")
   const [messages, setMessages] = useState([])
-  console.log(messages)
+  // console.log(messages)
+  const divUnderMessages = useRef()
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:3500') // Provides the API for creating and managing a WebSocket connection to a server, as well as for sending and receiving data on the connection.
@@ -25,6 +26,14 @@ const Chat = () => {
 
     ws.addEventListener('message', handleMessage)
   }, [])
+
+  // If new message has arrived, this effect will run
+  useEffect(() => {
+    const div = divUnderMessages.current
+    if (div) {
+      div.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    }
+  }, [messages])
 
   // Show Online People
   const showOnlinePeople = (peopleArray) => {
@@ -117,10 +126,23 @@ const Chat = () => {
           ))}
         </div>
 
-        <div className="mb-5 pl-5">
-          <span
+        <div className="flex items-center justify-between gap-5 mb-9 pl-5 pr-5">
+          <div className="flex items-center">
+            <span className="mr-2 text-sm text-gray-600 font-semibold">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                <path fillRule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clipRule="evenodd" />
+              </svg>
+            </span>
+            <span className="font-semibold">
+              {username}
+            </span>
+          </div>
+          <button
             onClick={signOutHandler}
-            className="text-red-700 text-xl cursor-pointer">Sign Out</span>
+            className='text-sm font-semibold bg-blue-200 hover:bg-blue-300 hover:text-black py-1 px-2  border rounded-md'
+          >
+            Sign Out
+          </button>
         </div>
       </div>
 
@@ -148,6 +170,8 @@ const Chat = () => {
                   MyID: {userId} <br /> */}
                   </div>
                 ))}
+                {/* This div for smooth scrolling */}
+                <div ref={divUnderMessages}></div>
               </div>
             </div>
           )}
