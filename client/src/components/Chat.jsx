@@ -32,6 +32,7 @@ const Chat = () => {
     const res = await fetch(`/chatty/v1/message/${selectedUserId}`, { method: 'GET' })
     const data = await res.json()
     console.log(data)
+    setMessages(data)
   }
 
   // get selectedUserId's messages from MongoDB
