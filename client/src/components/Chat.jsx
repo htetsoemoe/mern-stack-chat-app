@@ -6,6 +6,7 @@ import {
 import Avatar from './Avatar'
 import Logo from './Logo'
 import { uniqBy, uniqueId } from 'lodash'
+import axios from 'axios'
 
 const Chat = () => {
   const [webSocket, setWebSocket] = useState(null)
@@ -26,6 +27,20 @@ const Chat = () => {
 
     ws.addEventListener('message', handleMessage)
   }, [])
+
+  const fetchAllMessages = async () => {
+    const res = await fetch(`/chatty/v1/message/${selectedUserId}`, { method: 'GET' })
+    const data = await res.json()
+    console.log(data)
+  }
+
+  // get selectedUserId's messages from MongoDB
+  useEffect(() => {
+    if (selectedUserId) {
+      console.log(`/chatty/v1/message/` + selectedUserId)
+      fetchAllMessages()
+    }
+  }, [selectedUserId])
 
   // If new message has arrived, this effect will run
   useEffect(() => {

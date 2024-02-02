@@ -5,6 +5,7 @@ const connectDB = require('./config/dbConn')
 const app = express()
 const ws = require('ws')
 const jwt = require('jsonwebtoken')
+const cookieParser = require('cookie-parser')
 const Message = require('./models/Message')
 
 const jwtSecret = process.env.JWT_SECRETE
@@ -13,7 +14,9 @@ console.log(process.env.NODE_ENV)
 connectDB()
 
 app.use(express.json())
+app.use(cookieParser())
 app.use('/chatty/v1/auth', require('./routes/authRoute'))
+app.use('/chatty/v1/message', require('./routes/messageRoute'))
 
 // default error handler middleware
 app.use((err, req, res, next) => {
