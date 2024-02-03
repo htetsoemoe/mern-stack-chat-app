@@ -22,23 +22,36 @@ const Chat = () => {
   const divUnderMessages = useRef()
 
   useEffect(() => {
+    connectToWebSocket()
+  }, [selectedUserId])
+
+  // when chat component was mounted, reloaded the page(Chat.jsx) and lost the connection, need to reconnect to socket server
+  const connectToWebSocket = () => {
     const ws = new WebSocket('ws://localhost:3500') // Provides the API for creating and managing a WebSocket connection to a server, as well as for sending and receiving data on the connection.
     setWebSocket(ws) // Set web-socket server to state
 
+    // handler of incoming messages from socket server
     ws.addEventListener('message', handleMessage)
-  }, [])
 
+    // handler of web socket connection close or component update(Chat.jsx)
+    ws.addEventListener('close', () => {
+      setTimeout(() => {
+        console.log("Disconnected. Trying to reconnected...")
+        connectToWebSocket()
+      }, 1000)
+    })
+  }
+
+  // get all messages of when user clicked on a specified user(selectedUserId)
   const fetchAllMessages = async () => {
     const res = await fetch(`/chatty/v1/message/${selectedUserId}`, { method: 'GET' })
     const data = await res.json()
-    console.log(data)
     setMessages(data)
   }
 
   // get selectedUserId's messages from MongoDB
   useEffect(() => {
     if (selectedUserId) {
-      console.log(`/chatty/v1/message/` + selectedUserId)
       fetchAllMessages()
     }
   }, [selectedUserId])
@@ -62,7 +75,7 @@ const Chat = () => {
   }
 
   // Socket server response to client handler
-  const handleMessage = (event) => {
+  const handleMessage = (event) => {  // event = MessageEvent
     const messageData = JSON.parse(event.data)
     //console.log(messageData)
     if ('online' in messageData) {
@@ -179,7 +192,7 @@ const Chat = () => {
                   <div key={index}
                     className={(message.sender === userId ? 'text-right' : 'text-left')}
                   >
-                    <div className={`text-left inline-block p-2 my-2 rounded-md text-sm ${message.sender === userId ? 'bg-blue-500 text-white' : 'bg-white text-gray-500'}`}>
+                    <div className={`text-left inline-block p-2 my-2 rounded-md text-sm ${message.sender === userId ? 'bg-blue-500 text-white font-semibold' : 'bg-white text-gray-500 font-semibold'}`}>
                       {message.text}
                     </div>
                     {/* SenderID: {message.sender} <br />

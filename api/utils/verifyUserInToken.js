@@ -4,7 +4,6 @@ const jwtSecret = process.env.JWT_SECRETE
 
 const verifyUserInToken = (req, res, next) => {
    const token = req.cookies.token
-   console.log(token)
 
    if (!token) return next(errorHandler(401, 'Unauthorized'))
 
