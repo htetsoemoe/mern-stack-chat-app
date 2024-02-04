@@ -17,6 +17,7 @@ app.use(express.json())
 app.use(cookieParser())
 app.use('/chatty/v1/auth', require('./routes/authRoute'))
 app.use('/chatty/v1/message', require('./routes/messageRoute'))
+app.use('/chatty/v1/users', require('./routes/userRoute'))
 
 // default error handler middleware
 app.use((err, req, res, next) => {
