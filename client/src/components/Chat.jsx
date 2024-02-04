@@ -7,6 +7,7 @@ import Avatar from './Avatar'
 import Logo from './Logo'
 import { uniqBy, uniqueId } from 'lodash'
 import axios from 'axios'
+import Contact from './Contact'
 
 const Chat = () => {
   const [webSocket, setWebSocket] = useState(null)
@@ -20,6 +21,8 @@ const Chat = () => {
   const [messages, setMessages] = useState([])
   // console.log(messages)
   const divUnderMessages = useRef()
+  const [offlinePeople, setOfflinePeople] = useState({})
+  // console.log(offlinePeople)
 
   useEffect(() => {
     connectToWebSocket()
@@ -55,6 +58,29 @@ const Chat = () => {
       fetchAllMessages()
     }
   }, [selectedUserId])
+
+  // get all users from MongoDB and filter offlinePeople based on 'onlinePeople' dependency
+  useEffect(() => {
+    // this method return offlinePeople array
+    const getOfflinePeople = async () => {
+      const res = await fetch('/chatty/v1/users/')
+      const data = await res.json()
+      return data
+    }
+
+    getOfflinePeople().then(res => {
+      const offlinePeopleArray = res
+        .filter(p => p._id !== userId) // exclude current userId
+        .filter(p => !Object.keys(onlinePeople).includes(p._id)) // filter only offline people
+
+      const offlinePeople = {}
+      offlinePeopleArray.forEach(p => {
+        offlinePeople[p._id] = p
+      })
+      setOfflinePeople(offlinePeople)
+      // console.log(offlinePeople)
+    })
+  }, [onlinePeople])
 
   // If new message has arrived, this effect will run
   useEffect(() => {
@@ -107,7 +133,7 @@ const Chat = () => {
 
   // Exclude Current Login User from Chat UI
   const excludeCurrentUserFromOnlinePeople = { ...onlinePeople }
-  // console.log(excludeCurrentUserFromOnlinePeople)
+  console.log(excludeCurrentUserFromOnlinePeople)
   delete excludeCurrentUserFromOnlinePeople[userId]
 
   // SignOut Handler
@@ -138,20 +164,26 @@ const Chat = () => {
 
           {/* Show online people */}
           {Object.keys(excludeCurrentUserFromOnlinePeople).map(userId => (
-            <div key={userId}
-              onClick={() => setSelectedUserId(userId)}
-              className={`border-b border-gray-50 bg-slate-200 font-semibold rounded-md mb-3 flex items-center gap-3 hover:cursor-pointer ${userId === selectedUserId ? 'bg-blue-200' : ''}`}>
+            <Contact
+              key={userId}
+              id={userId}
+              online={true}
+              username={excludeCurrentUserFromOnlinePeople[userId]}
+              onClick={() => { setSelectedUserId(userId) }}
+              selected={userId === selectedUserId}
+            />
+          ))}
 
-              {/* If user clicked on a specified user show vertical bar on left-handed side */}
-              {userId === selectedUserId && (
-                <div className="w-[7px] bg-pink-500 h-14"></div>
-              )}
-
-              <div className="flex items-center gap-3 pl-3 py-3">
-                <Avatar username={onlinePeople[userId]} userId={userId} />
-                <span>{onlinePeople[userId]}</span>
-              </div>
-            </div>
+          {/* Show offline people */}
+          {Object.keys(offlinePeople).map(userId => (
+            <Contact
+              key={userId}
+              id={userId}
+              online={false}
+              username={offlinePeople[userId].username}
+              onClick={() => { setSelectedUserId(userId) }}
+              selected={userId === selectedUserId}
+            />
           ))}
         </div>
 
