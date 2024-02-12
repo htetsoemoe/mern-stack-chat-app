@@ -48,6 +48,40 @@ webSocketServer.on('connection', (connection, req) => {
     console.log('Connected to Web Socket Server...')
     // connection.send("Hello from client to web socket server!")
 
+    // all clients of web socket server
+    //console.log([...webSocketServer.clients].map(client => client.username))
+    const notifyAboutOnlinePeople = () => {
+        [...webSocketServer.clients].forEach(client => {
+            client.send(JSON.stringify({
+                online: [...webSocketServer.clients].map(c => ({
+                    userId: c.userId,
+                    username: c.username
+                }))
+            }))
+        })
+    }
+
+    connection.isAlive = true
+
+    // to check offline people and terminate the offline people's connection
+    connection.timer = setInterval(() => {
+        connection.ping()   // client ping to server in every 5 seconds
+
+        connection.deathTimer = setTimeout(() => { // If server cannot respond 'pong'
+            connection.isAlive = false
+            clearInterval(connection.timer)
+            connection.terminate()
+            notifyAboutOnlinePeople()
+            console.log("Someone is offline")
+        }, 1000)
+
+    }, 5000)
+
+    // If server can respond to client 'pong', no need to connection terminate
+    connection.on('pong', () => {
+        clearTimeout(connection.deathTimer)
+    })
+
     // Get cookie of a specified connection and decode userId and username from cookie
     const cookie = req.headers.cookie
     if (cookie) {
@@ -89,14 +123,6 @@ webSocketServer.on('connection', (connection, req) => {
         }
     });
 
-    // all clients of web socket server
-    //console.log([...webSocketServer.clients].map(client => client.username))
-    [...webSocketServer.clients].forEach(client => {
-        client.send(JSON.stringify({
-            online: [...webSocketServer.clients].map(c => ({
-                userId: c.userId,
-                username: c.username
-            }))
-        }))
-    })
+    // notify everyone about online people (when someone connects)
+    notifyAboutOnlinePeople()
 })
