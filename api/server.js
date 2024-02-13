@@ -103,7 +103,12 @@ webSocketServer.on('connection', (connection, req) => {
     // if web socket server is receiving the message from client
     connection.on('message', async (message) => {
         const messageData = JSON.parse(message.toString())
-        const { recipient, text } = messageData
+        const { recipient, text, file } = messageData
+
+        if (file) {
+            console.log(file.name)
+        }
+
         if (recipient && text) {
             // Save Message to MongoDB
             const messageDoc = await Message.create({

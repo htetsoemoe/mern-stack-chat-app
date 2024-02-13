@@ -113,13 +113,18 @@ const Chat = () => {
   }
 
   // Send Message to web socket server
-  const sendMessage = (event) => {
-    event.preventDefault()
+  const sendMessage = (event, file = null) => {
+    if (event) {
+      event.preventDefault()
+    }
     console.log("Message Sending...")
+
     webSocket.send(JSON.stringify({
       recipient: selectedUserId,
       text: newMessageText,
+      file, // file object
     }))
+
     setNewMessageText('')
     setMessages(prev => ([...prev, {
       text: newMessageText,
@@ -133,8 +138,10 @@ const Chat = () => {
 
   // Exclude Current Login User from Chat UI
   const excludeCurrentUserFromOnlinePeople = { ...onlinePeople }
-  console.log(excludeCurrentUserFromOnlinePeople)
+  // console.log("Before Exclude current user : ", excludeCurrentUserFromOnlinePeople)
+
   delete excludeCurrentUserFromOnlinePeople[userId]
+  // console.log("After Exclude current user : ", excludeCurrentUserFromOnlinePeople)
 
   // SignOut Handler
   const signOutHandler = async () => {
@@ -152,6 +159,17 @@ const Chat = () => {
 
     } catch (error) {
       dispatch(signOutFailure(error.message))
+    }
+  }
+
+  const sendFile = (event) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(event.target.files[0])
+    reader.onload = () => {
+      sendMessage(null, {
+        name: event.target.files[0].name,
+        data: reader.result,
+      })
     }
   }
 
@@ -248,6 +266,12 @@ const Chat = () => {
               placeholder="Type your message"
               className="bg-white p-3 border rounded-sm flex-grow focus:outline-none"
             />
+            <label className='p-2 bg-blue-200 text-gray-600 cursor-pointer rounded-sm border border-blue-200'>
+              <input type="file" className='hidden' onChange={sendFile} />
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                <path fillRule="evenodd" d="M18.97 3.659a2.25 2.25 0 00-3.182 0l-10.94 10.94a3.75 3.75 0 105.304 5.303l7.693-7.693a.75.75 0 011.06 1.06l-7.693 7.693a5.25 5.25 0 11-7.424-7.424l10.939-10.94a3.75 3.75 0 115.303 5.304L9.097 18.835l-.008.008-.007.007-.002.002-.003.002A2.25 2.25 0 015.91 15.66l7.81-7.81a.75.75 0 011.061 1.06l-7.81 7.81a.75.75 0 001.054 1.068L18.97 6.84a2.25 2.25 0 000-3.182z" clipRule="evenodd" />
+              </svg>
+            </label>
             <button
               type='submit'
               className='bg-blue-800 p-2 rounded-sm text-white'>
