@@ -18,7 +18,7 @@ connectDB()
 
 app.use(express.json())
 app.use(cookieParser())
-app.use('/uploads', express.static(__dirname + '/uploads'))
+app.use('/api/uploads', express.static(__dirname + '/uploads'))
 
 app.use('/chatty/v1/auth', require('./routes/authRoute'))
 app.use('/chatty/v1/message', require('./routes/messageRoute'))
@@ -131,12 +131,13 @@ webSocketServer.on('connection', (connection, req) => {
             console.log(`File Saved : ${userFilePath}${filename}`)
         }
 
-        if (recipient && text) {
+        if (recipient && (text || file)) {
             // Save Message to MongoDB
             const messageDoc = await Message.create({
                 sender: connection.userId,
                 recipient,
-                text
+                text,
+                file: file ? filename : null
             });
 
             [...webSocketServer.clients]
@@ -145,6 +146,7 @@ webSocketServer.on('connection', (connection, req) => {
                     text,
                     sender: connection.userId,
                     recipient,
+                    file: file ? filename : null,
                     id: messageDoc._id
                 })))
         }
