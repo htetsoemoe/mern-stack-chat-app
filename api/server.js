@@ -7,6 +7,9 @@ const ws = require('ws')
 const jwt = require('jsonwebtoken')
 const cookieParser = require('cookie-parser')
 const Message = require('./models/Message')
+const fs = require('fs')
+const fsPromises = require('fs').promises
+const path = require('path')
 
 const jwtSecret = process.env.JWT_SECRETE
 const PORT = process.env.PORT || 3500
@@ -15,6 +18,8 @@ connectDB()
 
 app.use(express.json())
 app.use(cookieParser())
+app.use('/uploads', express.static(__dirname + '/uploads'))
+
 app.use('/chatty/v1/auth', require('./routes/authRoute'))
 app.use('/chatty/v1/message', require('./routes/messageRoute'))
 app.use('/chatty/v1/users', require('./routes/userRoute'))
@@ -41,6 +46,15 @@ mongoose.connection.on('error', err => {
 })
 
 let server = app.listen(PORT, () => console.log(`Server running on port: ${PORT}`))
+
+// This is a file upload 
+const saveFile = async (userFilePath, filename, bufferData) => {
+    try {
+        await fsPromises.writeFile(path.join(userFilePath, filename), bufferData)
+    } catch (error) {
+        console.log(error)
+    }
+}
 
 // Create Web Socket Server
 const webSocketServer = new ws.WebSocketServer({ server })
@@ -105,8 +119,16 @@ webSocketServer.on('connection', (connection, req) => {
         const messageData = JSON.parse(message.toString())
         const { recipient, text, file } = messageData
 
+        let filename = null
         if (file) {
-            console.log(file.name)
+            const parts = file.name.split('.')
+            const ext = parts[parts.length - 1] // get file extension
+            filename = Date.now() + '.' + ext   // rename file's name
+            const userFilePath = __dirname + '/uploads/'
+            const bufferData = new Buffer.from(file.data.split(',')[1], 'base64')
+
+            saveFile(userFilePath, filename, bufferData)
+            console.log(`File Saved : ${userFilePath}${filename}`)
         }
 
         if (recipient && text) {
